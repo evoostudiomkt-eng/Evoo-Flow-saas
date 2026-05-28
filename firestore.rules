@@ -1,0 +1,183 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ------------------------------------------------------------------
+    // 1. GLOBAIS & HELPERS
+    // ------------------------------------------------------------------
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && request.auth.token.email == 'evoostudiomkt@gmail.com';
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAgencyMember(agencyId) {
+      return isSignedIn() && (
+        isSuperAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.agencyId == agencyId)
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isSuperAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'team'))
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isClient(targetClientId) {
+      return isSignedIn() && (
+        isSuperAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client' && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId == targetClientId)
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // ------------------------------------------------------------------
+    // 2. COLEÇÃO DE USUÁRIOS (PERFIS)
+    // ------------------------------------------------------------------
+    
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && userId == request.auth.uid;
+      allow update: if isSignedIn() && (userId == request.auth.uid || isSuperAdmin());
+    }
+
+    // ------------------------------------------------------------------
+    // 3. COLEÇÃO DE CLIENTES & SUBCOLEÇÕES
+    // ------------------------------------------------------------------
+    
+    match /clients/{clientId} {
+      // Regra mestre: apenas admin da agência ou o próprio cliente visualiza
+      allow get: if isSuperAdmin() || (isAgencyMember(resource.data.agencyId) && (isAdmin() || isClient(clientId)));
+      allow list: if isSuperAdmin() || isAdmin(); 
+      
+      allow create: if isSuperAdmin() || (isAdmin() && incoming().agencyId == getUserData().agencyId);
+      allow update: if isSuperAdmin() || (isAgencyMember(existing().agencyId) && (isAdmin() || isClient(clientId)));
+      allow delete: if isSuperAdmin() || isAdmin();
+
+      // --- SUBCOLEÇÃO: TAREFAS ---
+      match /tasks/{taskId} {
+        allow read: if isSuperAdmin() || (isAgencyMember(resource.data.agencyId) && (isAdmin() || isClient(clientId)));
+        allow create: if isSuperAdmin() || (isAgencyMember(incoming().agencyId) && (isAdmin() || isClient(clientId)));
+        allow update: if isSuperAdmin() || (isAgencyMember(existing().agencyId) && (isAdmin() || isClient(clientId)));
+        allow delete: if isSuperAdmin() || isAdmin();
+      }
+
+      // --- SUBCOLEÇÃO: CONTEÚDO ---
+      match /contents/{contentId} {
+        allow read: if isSuperAdmin() || (isAgencyMember(resource.data.agencyId) && (isAdmin() || isClient(clientId)));
+        allow create: if isSuperAdmin() || (isAgencyMember(incoming().agencyId) && isAdmin());
+        allow update: if isSuperAdmin() || (isAgencyMember(existing().agencyId) && (isAdmin() || (isClient(clientId) && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'clientFeedback']))));
+      }
+
+      // --- SUBCOLEÇÃO: FINANCEIRO ---
+      match /financials/{recordId} {
+        allow read, write: if isSuperAdmin() || (isAdmin() && isAgencyMember(resource.data.agencyId));
+      }
+
+      // --- SUBCOLEÇÃO: CONTRATOS ---
+      match /contracts/{contractId} {
+        allow read, write: if isSuperAdmin() || (isAdmin() && isAgencyMember(resource.data.agencyId));
+      }
+
+      // --- SUBCOLEÇÃO: LOGINS ---
+      match /logins/{loginId} {
+        allow read: if isSuperAdmin() || (isAgencyMember(resource.data.agencyId) && (isAdmin() || isClient(clientId)));
+        allow write: if isSuperAdmin() || (isAdmin() && isAgencyMember(incoming().agencyId));
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 4. COLEÇÃO DE LEADS (PIPELINE)
+    // ------------------------------------------------------------------
+    
+    match /leads/{leadId} {
+      allow read, update, delete: if isSuperAdmin() || (isAdmin() && isAgencyMember(resource.data.agencyId));
+      allow create: if true; 
+    }
+
+    // ------------------------------------------------------------------
+    // 5. MISC (LOGS, NOTIFICAÇÕES, CONFIGS)
+    // ------------------------------------------------------------------
+
+    match /activity_logs/{logId} {
+      allow read: if isSuperAdmin() || (isAdmin() && isAgencyMember(resource.data.agencyId));
+      allow create: if isSignedIn();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isSuperAdmin() || (isSignedIn() && (resource.data.recipientId == request.auth.uid || isAdmin()));
+      allow create: if isSignedIn();
+    }
+
+    match /services/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isAdmin();
+    }
+
+    match /niches/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isAdmin();
+    }
+
+    match /agencies/{agencyId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /deletionLogs/{logId} {
+      allow read: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+    }
+
+    // ------------------------------------------------------------------
+    // 6. COLLECTION GROUPS (Para queries globais da agência)
+    // ------------------------------------------------------------------
+
+    match /{path=**}/tasks/{taskId} {
+      allow read: if isSuperAdmin() || (isAgencyMember(resource.data.agencyId) && (isAdmin() || isClient(resource.data.clientId)));
+    }
+
+    match /{path=**}/contents/{contentId} {
+      allow read: if isSuperAdmin() || (isAgencyMember(resource.data.agencyId) && (isAdmin() || isClient(resource.data.clientId)));
+    }
+
+    match /{path=**}/financials/{recordId} {
+      allow read: if isSuperAdmin() || (isAdmin() && isAgencyMember(resource.data.agencyId));
+    }
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile information for team members and clients.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "member", "client"] },
+        "clientId": { "type": "string", "description": "Only for client roles" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Service": {
+      "title": "Service Template",
+      "description": "Standard service package definitions.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "postCount": { "type": "number" },
+        "reelsCount": { "type": "number" },
+        "templateTasks": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Client data and configuration.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "company": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "cnpj": { "type": "string" },
+        "address": { "type": "string" },
+        "nicheId": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "paused", "cancelled"] },
+        "driveFolderId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "company", "status"]
+    },
+    "LoginInfo": {
+      "title": "Login Info",
+      "properties": {
+        "platform": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" }
+      }
+    },
+    "Contract": {
+      "title": "Contract",
+      "properties": {
+        "fileUrl": { "type": "string" },
+        "signedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" }
+      }
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Kanban task for a client.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["todo", "in_progress", "review", "done"] },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "assigneeId": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "clientId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "status", "clientId"]
+    },
+    "Content": {
+      "title": "Content",
+      "description": "Editorial calendar content.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["post", "reels", "story"] },
+        "platform": { "type": "string" },
+        "script": { "type": "string" },
+        "caption": { "type": "string" },
+        "hashtags": { "type": "string" },
+        "publishDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["production", "approval", "approved", "revision"] },
+        "mediaUrl": { "type": "string" },
+        "feedback": { "type": "string" },
+        "history": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "status": { "type": "string" },
+              "note": { "type": "string" },
+              "updatedAt": { "type": "string", "format": "date-time" },
+              "updatedBy": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["title", "status", "type"]
+    },
+    "ActivityLog": {
+      "title": "Activity Log",
+      "description": "History of events in the system.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "entityId": { "type": "string" },
+        "entityType": { "type": "string" },
+        "clientId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app user notification.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Target user ID" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["lead", "task", "content", "system"] },
+        "read": { "type": "boolean" },
+        "link": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "read", "createdAt"]
+    },
+    "Financial": {
+      "title": "Financial Record",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["paid", "pending", "overdue"] },
+        "description": { "type": "string" },
+        "conditions": { "type": "string" },
+        "clientId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["amount", "dueDate", "status", "clientId"]
+    },
+    "DeletionLog": {
+      "title": "Deletion Log",
+      "description": "Logs of deleted agency records.",
+      "type": "object",
+      "properties": {
+        "agencyId": { "type": "string" },
+        "agencyName": { "type": "string" },
+        "reason": { "type": "string" },
+        "deletedByEmail": { "type": "string" },
+        "deletedByName": { "type": "string" },
+        "deletedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["agencyId", "agencyName", "reason", "deletedByEmail", "deletedByName", "deletedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "Global user profiles." },
+    "/services/{serviceId}": { "schema": "Service", "description": "Global service catalog." },
+    "/clients/{clientId}": { "schema": "Client", "description": "Main client record." },
+    "/clients/{clientId}/logins/{loginId}": { "schema": "LoginInfo", "description": "Access data." },
+    "/clients/{clientId}/contracts/{contractId}": { "schema": "Contract", "description": "Legal docs." },
+    "/clients/{clientId}/tasks/{taskId}": { "schema": "Task", "description": "Tasks." },
+    "/clients/{clientId}/contents/{contentId}": { "schema": "Content", "description": "Calendar." },
+    "/clients/{clientId}/financials/{recordId}": { "schema": "Financial", "description": "Finances." },
+    "/niches/{nicheId}": { "schema": "object", "description": "Market niches." },
+    "/activity_logs/{logId}": { "schema": "ActivityLog", "description": "Audit trail." },
+    "/notifications/{notificationId}": { "schema": "Notification", "description": "Targeted notifications." },
+    "/deletionLogs/{logId}": { "schema": "DeletionLog", "description": "Deletion logs for agencies." }
+  }
+}
