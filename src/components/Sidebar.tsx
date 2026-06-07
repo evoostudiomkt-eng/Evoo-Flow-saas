@@ -71,7 +71,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col animate-fade-in" id="sidebar">
       <div className="p-4 border-b border-gray-100 flex flex-col items-center space-y-3">
         {/* EvooFlow Logo is mandatory and displayed across all accesses */}
-        <Logo size="sm" showText={true} />
+        <Logo size="md" showText={true} />
         
         {showCustomLogo && (
           <div className="h-8 w-full flex items-center justify-center p-1 overflow-hidden rounded-lg bg-gray-50/80 border border-gray-100 mt-1">

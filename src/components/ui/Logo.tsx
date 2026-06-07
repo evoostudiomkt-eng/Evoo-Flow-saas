@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '../../lib/utils';
-// @ts-ignore
-import logoEvooFlow from './logo_evooflow.png';
+
+const logoEvooFlow = '/logo_evooflow.png';
 
 interface LogoProps {
   className?: string;
@@ -17,10 +17,10 @@ export default function Logo({
   variant = 'dark'
 }: LogoProps) {
   const sizes = {
-    sm: { icon: 'h-8 w-auto', text: 'text-lg', gap: 'space-y-1' },
-    md: { icon: 'h-14 w-auto', text: 'text-xl', gap: 'space-y-2' },
-    lg: { icon: 'h-24 w-auto', text: 'text-3xl', gap: 'space-y-2' },
-    xl: { icon: 'h-36 w-auto', text: 'text-5xl', gap: 'space-y-3' },
+    sm: { icon: 'h-12 w-auto', text: 'text-xl' },
+    md: { icon: 'h-20 w-auto', text: 'text-2xl' },
+    lg: { icon: 'h-32 w-auto', text: 'text-4xl' },
+    xl: { icon: 'h-48 w-auto', text: 'text-6xl' },
   };
 
   const currentSize = sizes[size];
@@ -32,9 +32,9 @@ export default function Logo({
   const handleError = () => {
     // If local asset somehow fails, attempt Google Drive as backup, then SVG
     if (imgSrc === logoEvooFlow) {
-      setImgSrc("https://lh3.googleusercontent.com/d/1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ");
-    } else if (imgSrc === "https://lh3.googleusercontent.com/d/1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ") {
-      setImgSrc("https://drive.google.com/thumbnail?id=1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ&sz=w500");
+      setImgSrc("https://lh3.googleusercontent.com/d/1DaRoT5ecWvebVrZ61GSDMMil4GuZ4X1A");
+    } else if (imgSrc === "https://lh3.googleusercontent.com/d/1DaRoT5ecWvebVrZ61GSDMMil4GuZ4X1A") {
+      setImgSrc("https://drive.google.com/thumbnail?id=1DaRoT5ecWvebVrZ61GSDMMil4GuZ4X1A&sz=w500");
     } else {
       setUseFallbackSvg(true);
     }
@@ -42,22 +42,19 @@ export default function Logo({
 
   return (
     <div className={cn(
-      "inline-flex items-center group", 
+      "inline-flex items-center justify-center group overflow-visible", 
       size === 'xl' ? "flex-col text-center" : "flex-row",
       className
     )}>
-      <div className={cn("relative flex-shrink-0 flex items-center justify-center", currentSize.icon)}>
-        {useFallbackSvg ? (
+      {useFallbackSvg ? (
+        <div className={cn("relative flex-shrink-0 flex items-center justify-center overflow-visible", currentSize.icon)}>
           <svg 
             viewBox="0 0 100 100" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
-            className={cn(
-              "w-full h-full text-blue-600 transition-transform duration-500 group-hover:scale-105", 
-              variant === 'white' ? "text-white" : "text-blue-600"
-            )}
+            className="w-full h-full text-blue-600 transition-transform duration-500 group-hover:scale-105"
           >
-            <g className={variant === 'white' ? "opacity-95" : "opacity-90"}>
+            <g className="opacity-90">
               {/* Petal 1 (Top) */}
               <path d="M50 15C50 15 58 35 50 48C42 35 50 15 50 15Z" fill="currentColor" opacity="0.95" />
               {/* Petal 2 (Right Top) */}
@@ -69,23 +66,26 @@ export default function Logo({
               {/* Petal 5 (Left Top) */}
               <path d="M19 38C19 38 40 41 49 51C41 61 19 38 19 38Z" fill="currentColor" opacity="0.85" />
               {/* Center Blossom Core */}
-              <circle cx="50" cy="50" r="8" fill="currentColor" className={variant === 'white' ? "text-indigo-950" : "text-white"} />
+              <circle cx="50" cy="50" r="8" fill="currentColor" className="text-white" />
               <circle cx="50" cy="50" r="4" fill="currentColor" />
             </g>
           </svg>
-        ) : (
-          <img 
-            src={imgSrc} 
-            alt="Evoo Flow Logo" 
-            className="max-h-full w-auto object-contain transition-transform duration-500 group-hover:scale-105"
-            referrerPolicy="no-referrer"
-            onError={handleError}
-          />
-        )}
-      </div>
+        </div>
+      ) : (
+        <img 
+          src={imgSrc} 
+          alt="Evoo Flow Logo" 
+          className={cn(
+            "object-contain transition-transform duration-500 group-hover:scale-[1.45] mix-blend-multiply scale-[1.35] origin-center",
+            currentSize.icon
+          )}
+          referrerPolicy="no-referrer"
+          onError={handleError}
+        />
+      )}
 
-      {showText && (
-        <div className={cn("hidden leading-none ml-4", size === 'xl' && "ml-0 mt-4")}>
+      {showText && useFallbackSvg && (
+        <div className={cn("flex leading-none ml-4", size === 'xl' && "ml-0 mt-4")}>
           <h1 className={cn(
             "font-black tracking-tighter uppercase", 
             currentSize.text,
