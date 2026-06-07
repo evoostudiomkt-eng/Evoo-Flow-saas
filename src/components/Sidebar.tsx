@@ -65,26 +65,15 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode
     setLogoError(false);
   }, [agency?.branding?.logoUrl]);
 
-  const showCustomLogo = agency?.branding?.logoUrl && !(isSuperAdmin && !isClientMode) && !logoError;
-
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col animate-fade-in" id="sidebar">
-      <div className="p-4 border-b border-gray-100 flex flex-col items-center space-y-3">
+      <div className="p-4 border-b border-gray-100 flex flex-col items-center justify-center space-y-3 bg-transparent m-0" id="sidebar-container">
         {/* EvooFlow Logo is mandatory and displayed across all accesses */}
-        <Logo size="md" showText={true} />
-        
-        {showCustomLogo && (
-          <div className="h-8 w-full flex items-center justify-center p-1 overflow-hidden rounded-lg bg-gray-50/80 border border-gray-100 mt-1">
-            <span className="text-[9px] font-semibold text-gray-400 mr-2 uppercase tracking-wide">Agência:</span>
-            <img 
-              src={agency?.branding?.logoUrl} 
-              alt={agency?.name || "Agency Logo"} 
-              className="max-h-full max-w-[120px] object-contain rounded"
-              referrerPolicy="no-referrer"
-              onError={() => setLogoError(true)}
-            />
-          </div>
-        )}
+        <Logo 
+          size="lg" 
+          className="h-16 w-full mx-auto block p-0 m-0 border-0 bg-transparent focus:outline-none" 
+          style={{ objectFit: 'contain' }} 
+        />
         
         {isSuperAdmin && (
           <div className="w-full bg-gray-100 p-1 rounded-xl flex">

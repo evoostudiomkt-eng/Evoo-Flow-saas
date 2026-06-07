@@ -238,7 +238,12 @@ export default function Dashboard({ profile, isDemoMode }: DashboardProps) {
                 }}
               />
             ) : (
-              <Sparkles className="w-8 h-8" style={{ color: brandPrimaryColor }} />
+              <img 
+                src="https://lh3.googleusercontent.com/d/1DaRoT5ecWvebVrZ61GSDMMil4GuZ4X1A" 
+                alt="Evoo Flow" 
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
             )}
           </div>
           <div>

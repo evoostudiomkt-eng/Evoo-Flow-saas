@@ -348,7 +348,7 @@ export default function AgencyDashboard({ profile, isDemoMode }: AgencyDashboard
             {stats.newLeads} <span className="text-lg text-zinc-400 font-light">leads novos</span>
           </h4>
           <p className="text-xs text-zinc-500 mt-3 font-medium flex items-center">
-            <Sparkles className="w-3.5 h-3.5 mr-1 text-blue-500" /> 
+            <TrendingUp className="w-3.5 h-3.5 mr-1 text-blue-500" /> 
             Pipeline de vendas ativo e saudável
           </p>
         </motion.div>
