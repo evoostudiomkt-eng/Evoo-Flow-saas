@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '../../lib/utils';
+// @ts-ignore
+import logoEvooFlow from './logo_evooflow.png';
 
 interface LogoProps {
   className?: string;
@@ -15,24 +17,25 @@ export default function Logo({
   variant = 'dark'
 }: LogoProps) {
   const sizes = {
-    sm: { icon: 'h-6 w-auto aspect-square', text: 'text-lg', gap: 'space-y-1' },
-    md: { icon: 'h-12 w-auto aspect-square', text: 'text-xl', gap: 'space-y-2' },
-    lg: { icon: 'h-20 w-auto aspect-square', text: 'text-3xl', gap: 'space-y-2' },
-    xl: { icon: 'h-32 w-auto aspect-square', text: 'text-5xl', gap: 'space-y-3' },
+    sm: { icon: 'h-8 w-auto', text: 'text-lg', gap: 'space-y-1' },
+    md: { icon: 'h-14 w-auto', text: 'text-xl', gap: 'space-y-2' },
+    lg: { icon: 'h-24 w-auto', text: 'text-3xl', gap: 'space-y-2' },
+    xl: { icon: 'h-36 w-auto', text: 'text-5xl', gap: 'space-y-3' },
   };
 
   const currentSize = sizes[size];
   
-  // Resilient multi-tiered image status management
-  const [imgSrc, setImgSrc] = useState("https://lh3.googleusercontent.com/d/1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ");
+  // Resilient multi-tiered image status management using local static asset as default
+  const [imgSrc, setImgSrc] = useState(logoEvooFlow);
   const [useFallbackSvg, setUseFallbackSvg] = useState(false);
 
   const handleError = () => {
-    // If the standard usercontent link fails, attempt the public CDN thumbnail proxy path
-    if (imgSrc === "https://lh3.googleusercontent.com/d/1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ") {
+    // If local asset somehow fails, attempt Google Drive as backup, then SVG
+    if (imgSrc === logoEvooFlow) {
+      setImgSrc("https://lh3.googleusercontent.com/d/1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ");
+    } else if (imgSrc === "https://lh3.googleusercontent.com/d/1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ") {
       setImgSrc("https://drive.google.com/thumbnail?id=1T7HgKvVVlT2Nr3eJsxTLfIZIgZRIuFOJ&sz=w500");
     } else {
-      // Otherwise, swap to our beautifully crafted custom SVG logo design
       setUseFallbackSvg(true);
     }
   };
@@ -82,7 +85,7 @@ export default function Logo({
       </div>
 
       {showText && (
-        <div className={cn("flex flex-col leading-none ml-4", size === 'xl' && "ml-0 mt-4")}>
+        <div className={cn("hidden leading-none ml-4", size === 'xl' && "ml-0 mt-4")}>
           <h1 className={cn(
             "font-black tracking-tighter uppercase", 
             currentSize.text,
