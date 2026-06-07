@@ -59,7 +59,13 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode
     ? menuItems 
     : menuItems.filter(item => profile.role === 'client' ? item.id === 'dashboard' : (profile.permissions?.includes(item.id) || item.id === 'dashboard'));
 
-  const showCustomLogo = agency?.branding?.logoUrl && !(isSuperAdmin && !isClientMode);
+  const [logoError, setLogoError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLogoError(false);
+  }, [agency?.branding?.logoUrl]);
+
+  const showCustomLogo = agency?.branding?.logoUrl && !(isSuperAdmin && !isClientMode) && !logoError;
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col animate-fade-in" id="sidebar">
@@ -67,14 +73,11 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode
         {showCustomLogo ? (
           <div className="h-10 w-full flex items-center justify-center p-1.5 overflow-hidden rounded-xl bg-gray-50/50">
             <img 
-              src={agency.branding?.logoUrl} 
-              alt={agency.name || "Agency Logo"} 
+              src={agency?.branding?.logoUrl} 
+              alt={agency?.name || "Agency Logo"} 
               className="max-h-full max-w-full object-contain"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                // Return to generic fallback Logo if the custom logo url fails to load or resolves to garbage
-                (e.currentTarget as HTMLImageElement).style.display = 'none';
-              }}
+              onError={() => setLogoError(true)}
             />
           </div>
         ) : (
