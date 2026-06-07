@@ -35,6 +35,7 @@ export default function PublicLeadForm() {
     fontFamily?: string;
   } | null>(null);
   const [agencyName, setAgencyName] = useState('');
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     const fetchBranding = async () => {
@@ -123,16 +124,14 @@ export default function PublicLeadForm() {
       >
         <div className="relative z-10 pt-0">
           <div className="mb-0">
-            {agencyBranding?.logoUrl ? (
+            {agencyBranding?.logoUrl && !logoError ? (
               <div className="mb-8 max-w-[220px]">
                 <img 
                   src={agencyBranding.logoUrl} 
                   className="max-h-16 w-auto object-contain rounded-xl" 
                   alt={agencyName || 'Agency Logo'} 
                   referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  onError={() => setLogoError(true)}
                 />
               </div>
             ) : (
@@ -183,16 +182,14 @@ export default function PublicLeadForm() {
       <div className="flex-1 bg-white p-8 md:p-20 flex flex-col justify-center">
         <div className="max-w-md mx-auto w-full">
           <div className="mb-6 block md:hidden text-center">
-            {agencyBranding?.logoUrl ? (
+            {agencyBranding?.logoUrl && !logoError ? (
               <div className="flex justify-center mb-4">
                 <img 
                   src={agencyBranding.logoUrl} 
                   className="max-h-12 w-auto object-contain rounded-lg" 
                   alt={agencyName || 'Agency Logo'} 
                   referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  onError={() => setLogoError(true)}
                 />
               </div>
             ) : (

@@ -69,19 +69,21 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col animate-fade-in" id="sidebar">
-      <div className="p-4 border-b border-gray-100 flex flex-col items-center space-y-4">
-        {showCustomLogo ? (
-          <div className="h-10 w-full flex items-center justify-center p-1.5 overflow-hidden rounded-xl bg-gray-50/50">
+      <div className="p-4 border-b border-gray-100 flex flex-col items-center space-y-3">
+        {/* EvooFlow Logo is mandatory and displayed across all accesses */}
+        <Logo size="sm" showText={true} />
+        
+        {showCustomLogo && (
+          <div className="h-8 w-full flex items-center justify-center p-1 overflow-hidden rounded-lg bg-gray-50/80 border border-gray-100 mt-1">
+            <span className="text-[9px] font-semibold text-gray-400 mr-2 uppercase tracking-wide">Agência:</span>
             <img 
               src={agency?.branding?.logoUrl} 
               alt={agency?.name || "Agency Logo"} 
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-[120px] object-contain rounded"
               referrerPolicy="no-referrer"
               onError={() => setLogoError(true)}
             />
           </div>
-        ) : (
-          <Logo size="md" className="max-w-full" />
         )}
         
         {isSuperAdmin && (

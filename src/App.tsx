@@ -404,7 +404,7 @@ export default function App() {
   }
 
   const renderContent = () => {
-    const isDemoMode = (currentProfile?.email === 'evoostudiomkt@gmail.com' && isClientMode) || isDemoExplorerActive;
+    const isDemoMode = isDemoExplorerActive;
     if (!currentProfile) return null;
     switch (activeTab) {
       // Client/Agency Tabs
