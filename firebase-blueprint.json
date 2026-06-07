@@ -181,6 +181,7 @@
     "/niches/{nicheId}": { "schema": "object", "description": "Market niches." },
     "/activity_logs/{logId}": { "schema": "ActivityLog", "description": "Audit trail." },
     "/notifications/{notificationId}": { "schema": "Notification", "description": "Targeted notifications." },
-    "/deletionLogs/{logId}": { "schema": "DeletionLog", "description": "Deletion logs for agencies." }
+    "/deletionLogs/{logId}": { "schema": "DeletionLog", "description": "Deletion logs for agencies." },
+    "/saasSettings/{docId}": { "schema": "object", "description": "Global SaaS-wide configurations such as global branding defaults." }
   }
 }

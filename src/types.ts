@@ -46,6 +46,7 @@ export interface Agency {
   branding?: {
     logoUrl?: string;
     primaryColor?: string;
+    fontFamily?: string;
     title?: string;
     description?: string;
     buttonText?: string;
@@ -91,6 +92,14 @@ export interface Client {
   driveVideoFolderId?: string;
   driveImageFolderId?: string;
   logoUrl?: string;
+  portalEmail?: string;
+  portalPassword?: string;
+  portalPrimaryColor?: string;
+  portalAccentColor?: string;
+  portalPermissions?: string[];
+  logoScale?: number;
+  logoPositionX?: number;
+  logoPositionY?: number;
   onboardingStatus?: {
     step: number;
     totalSteps: number;

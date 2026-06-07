@@ -457,6 +457,7 @@ export default function App() {
             isClientMode={isClientMode}
             setIsClientMode={setIsClientMode}
             isDemoMode={isDemoExplorerActive}
+            agency={agency}
           />
         </div>
 

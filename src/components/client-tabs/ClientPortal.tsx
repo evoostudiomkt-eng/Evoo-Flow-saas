@@ -47,20 +47,36 @@ export default function ClientPortal({ client, profile, isDemoMode }: ClientPort
   const [activePresetColor, setActivePresetColor] = useState('#2563eb'); // Default Blue
 
   // Portal setup states
-  const [portalEmail, setPortalEmail] = useState(client.email || '');
-  const [portalPassword, setPortalPassword] = useState('Evoo@' + (client.company ? client.company.replace(/\s+/g, '') : '2026'));
-  const [primaryColor, setPrimaryColor] = useState('#2563eb');
-  const [accentColor, setAccentColor] = useState('#f59e0b'); // Default Warm Amber
-  const [customPermissions, setCustomPermissions] = useState<string[]>([
+  const [portalEmail, setPortalEmail] = useState(client.portalEmail || client.email || '');
+  const [portalPassword, setPortalPassword] = useState(client.portalPassword || 'Evoo@' + (client.company ? client.company.replace(/\s+/g, '') : '2026'));
+  const [primaryColor, setPrimaryColor] = useState(client.portalPrimaryColor || '#2563eb');
+  const [accentColor, setAccentColor] = useState(client.portalAccentColor || '#f59e0b'); // Default Warm Amber
+  const [customPermissions, setCustomPermissions] = useState<string[]>(client.portalPermissions || [
     'view_calendar',
     'approve_creatives',
     'view_financial'
   ]);
 
   // Logo crop & position simulator states 
-  const [logoScale, setLogoScale] = useState(1);
-  const [logoPositionX, setLogoPositionX] = useState(0);
-  const [logoPositionY, setLogoPositionY] = useState(0);
+  const [logoScale, setLogoScale] = useState(client.logoScale || 1);
+  const [logoPositionX, setLogoPositionX] = useState(client.logoPositionX || 0);
+  const [logoPositionY, setLogoPositionY] = useState(client.logoPositionY || 0);
+
+  // Sync state variables when client prop changes
+  useEffect(() => {
+    setPortalEmail(client.portalEmail || client.email || '');
+    setPortalPassword(client.portalPassword || 'Evoo@' + (client.company ? client.company.replace(/\s+/g, '') : '2026'));
+    setPrimaryColor(client.portalPrimaryColor || '#2563eb');
+    setAccentColor(client.portalAccentColor || '#f59e0b');
+    setCustomPermissions(client.portalPermissions || [
+      'view_calendar',
+      'approve_creatives',
+      'view_financial'
+    ]);
+    setLogoScale(client.logoScale || 1);
+    setLogoPositionX(client.logoPositionX || 0);
+    setLogoPositionY(client.logoPositionY || 0);
+  }, [client]);
 
   // Additional users/stakeholders lists
   const [additionalUsers, setAdditionalUsers] = useState<AdditionalUser[]>([]);
@@ -70,14 +86,14 @@ export default function ClientPortal({ client, profile, isDemoMode }: ClientPort
   const [isAddingUser, setIsAddingUser] = useState(false);
 
   useEffect(() => {
-    if (client.logoUrl) {
+    if (client.logoUrl && !client.portalPrimaryColor) {
       // Simulate color palette auto-extraction
       const hash = client.company.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
       const colorPresets = ['#0f172a', '#1e1b4b', '#1c1917', '#111827', '#022c22', '#1e3a8a'];
       const extractedBase = colorPresets[hash % colorPresets.length];
       setPrimaryColor(extractedBase);
     }
-  }, [client.logoUrl, client.company]);
+  }, [client.logoUrl, client.company, client.portalPrimaryColor]);
 
   useEffect(() => {
     if (isDemoMode) {

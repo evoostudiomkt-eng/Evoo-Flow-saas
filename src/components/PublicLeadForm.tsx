@@ -32,6 +32,7 @@ export default function PublicLeadForm() {
     title?: string;
     description?: string;
     buttonText?: string;
+    fontFamily?: string;
   } | null>(null);
   const [agencyName, setAgencyName] = useState('');
 
@@ -114,7 +115,7 @@ export default function PublicLeadForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row shadow-2xl">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row shadow-2xl" style={{ fontFamily: agencyBranding?.fontFamily || 'Inter' }}>
       {/* Left Side: Branding/Value Prop */}
       <div 
         className="hidden md:flex w-1/2 p-12 lg:p-20 flex-col justify-between text-white relative overflow-hidden transition-colors duration-300"

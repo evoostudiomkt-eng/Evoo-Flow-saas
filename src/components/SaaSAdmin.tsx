@@ -8,7 +8,9 @@ import {
   updateDoc,
   orderBy,
   addDoc,
-  deleteDoc
+  deleteDoc,
+  getDoc,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, Agency, Client } from '../types';
@@ -32,7 +34,12 @@ import {
   HardDrive,
   Trash2,
   DollarSign,
-  Settings
+  Settings,
+  Palette,
+  Type,
+  Image,
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
@@ -63,6 +70,18 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
   const [agencyToDelete, setAgencyToDelete] = useState<Agency | null>(null);
   const [deleteReason, setDeleteReason] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Global Branding Default States
+  const [globalBranding, setGlobalBranding] = useState({
+    logoUrl: '',
+    primaryColor: '#2563eb',
+    fontFamily: 'Inter',
+    title: '',
+    description: '',
+    buttonText: ''
+  });
+  const [isSavingGlobalBranding, setIsSavingGlobalBranding] = useState(false);
+  const [globalBrandingSaved, setGlobalBrandingSaved] = useState(false);
   
   // Use a local state that defaults to initialTab (handling settings naming alignment)
   const [activeTab, setActiveTab] = useState<string>(
@@ -116,6 +135,24 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
         setUsers(usersSnap.docs.map(d => ({ uid: d.id, ...d.data() } as unknown as UserProfile)));
         if (clientsSnap) {
           setClients(clientsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Client)));
+        }
+
+        // Fetch Global SaaS branding defaults
+        try {
+          const globalBrandDoc = await getDoc(doc(db, 'saasSettings', 'brandingDefaults'));
+          if (globalBrandDoc.exists()) {
+            const data = globalBrandDoc.data();
+            setGlobalBranding({
+              logoUrl: data.logoUrl || '',
+              primaryColor: data.primaryColor || '#2563eb',
+              fontFamily: data.fontFamily || 'Inter',
+              title: data.title || '',
+              description: data.description || '',
+              buttonText: data.buttonText || ''
+            });
+          }
+        } catch (bErr) {
+          console.warn("Unable to fetch global branding defaults:", bErr);
         }
       } catch (err) {
         console.error(err);
@@ -233,6 +270,16 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
     const plan = PLANS[newAgency.planId];
 
     try {
+      // Setup the branding inherited from the SaaS global parameters
+      const initialBranding = {
+        logoUrl: globalBranding.logoUrl || '',
+        primaryColor: globalBranding.primaryColor || '#2563eb',
+        fontFamily: globalBranding.fontFamily || 'Inter',
+        title: globalBranding.title || '',
+        description: globalBranding.description || '',
+        buttonText: globalBranding.buttonText || ''
+      };
+
       const docRef = await addDoc(collection(db, 'agencies'), {
         name: newAgency.name,
         planId: newAgency.planId,
@@ -240,7 +287,8 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
         storageLimitGb: plan.storage,
         status: 'active',
         createdAt: new Date().toISOString(),
-        ownerEmail: newAgency.ownerEmail // For future linking
+        ownerEmail: newAgency.ownerEmail, // For future linking
+        branding: initialBranding
       });
 
       const created = { 
@@ -250,7 +298,8 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
         clientLimit: plan.clients,
         storageLimitGb: plan.storage,
         status: 'active',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        branding: initialBranding
       } as Agency;
 
       setAgencies([created, ...agencies]);
@@ -260,6 +309,22 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
       console.error(err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveGlobalBranding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingGlobalBranding(true);
+    setGlobalBrandingSaved(false);
+    try {
+      await setDoc(doc(db, 'saasSettings', 'brandingDefaults'), globalBranding, { merge: true });
+      setGlobalBrandingSaved(true);
+      setTimeout(() => setGlobalBrandingSaved(false), 3000);
+    } catch (err) {
+      console.error("Erro ao salvar branding global:", err);
+      alert("Erro ao salvar identidade global: " + (err as Error).message);
+    } finally {
+      setIsSavingGlobalBranding(false);
     }
   };
 
@@ -306,41 +371,7 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
       {/* Tab Content */}
       {activeTab === 'agencies' && (
         <>
-          {/* Subheader Switcher */}
-          <div className="flex border-b border-gray-100">
-            <button 
-              type="button"
-              onClick={() => {
-                setSaasCentralSubTab('agencies');
-                setSearch('');
-              }}
-              className={cn(
-                "px-6 py-3 font-black text-xs uppercase tracking-widest border-b-2 transition-all flex items-center space-x-2 outline-none",
-                saasCentralSubTab === 'agencies' 
-                  ? "border-blue-600 text-blue-600" 
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              )}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>Agências ({agencies.length})</span>
-            </button>
-            <button 
-              type="button"
-              onClick={() => {
-                setSaasCentralSubTab('clients');
-                setSearch('');
-              }}
-              className={cn(
-                "px-6 py-3 font-black text-xs uppercase tracking-widest border-b-2 transition-all flex items-center space-x-2 outline-none",
-                saasCentralSubTab === 'clients' 
-                  ? "border-blue-600 text-blue-600" 
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              )}
-            >
-              <Users className="w-4 h-4" />
-              <span>Clientes ({clients.length})</span>
-            </button>
-          </div>
+          {/* Subheader Switcher removed to focus exclusively on Agency partners */}
 
           {saasCentralSubTab === 'agencies' ? (
             <>
@@ -804,6 +835,202 @@ export default function SaaSAdmin({ profile, initialTab }: SaaSAdminProps) {
                     <input type="number" defaultValue={7} className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none" />
                   </div>
                </div>
+            </div>
+
+            {/* Global Branding Default Control Panel for SaaS administrator */}
+            <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[2.5rem] border border-gray-100 shadow-sm mt-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h4 className="text-lg font-black text-gray-900 flex items-center">
+                    <Palette className="w-5 h-5 mr-3 text-blue-600 animate-pulse" />
+                    Branding Global Padrão (Novas Agências)
+                  </h4>
+                  <p className="text-gray-500 text-xs font-semibold mt-1 font-sans">
+                    Defina globalmente a identidade visual padrão (logo, paleta de cores, fontes e copywriting) que novas agências herdarão imediatamente ao serem cadastradas no SaaS.
+                  </p>
+                </div>
+                {globalBrandingSaved && (
+                  <div className="px-4 py-2 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl flex items-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-600 animate-bounce" />
+                    Branding global salvo com sucesso!
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={handleSaveGlobalBranding} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Cores */}
+                  <div className="space-y-4 p-5 bg-gray-50 rounded-2xl border border-gray-100/50">
+                    <div className="flex items-center space-x-2">
+                      <Palette className="w-4 h-4 text-blue-600" />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block font-sans">Cor Primária SaaS</label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input 
+                        type="color" 
+                        value={globalBranding.primaryColor || '#2563eb'}
+                        onChange={(e) => setGlobalBranding({ ...globalBranding, primaryColor: e.target.value })}
+                        className="w-12 h-12 rounded-xl cursor-pointer border border-gray-200 p-0 overflow-hidden bg-transparent shrink-0"
+                      />
+                      <input 
+                        type="text" 
+                        value={globalBranding.primaryColor || '#2563eb'}
+                        onChange={(e) => setGlobalBranding({ ...globalBranding, primaryColor: e.target.value })}
+                        placeholder="#2563eb"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold shadow-inner bg-white text-gray-700 outline-none"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-medium font-sans">Esta cor será aplicada a botões, links e destaques visuais.</p>
+                  </div>
+
+                  {/* Fontes */}
+                  <div className="space-y-4 p-5 bg-gray-50 rounded-2xl border border-gray-100/50">
+                    <div className="flex items-center space-x-2">
+                      <Type className="w-4 h-4 text-blue-600" />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block font-sans">Fonte Padrão (Tipografia)</label>
+                    </div>
+                    <select 
+                      value={globalBranding.fontFamily || 'Inter'}
+                      onChange={(e) => setGlobalBranding({ ...globalBranding, fontFamily: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs font-bold bg-white text-gray-700 outline-none font-sans"
+                    >
+                      <option value="Inter">Inter (Suiça/Clean)</option>
+                      <option value="Space Grotesk">Space Grotesk (Tech/Moderna)</option>
+                      <option value="Outfit">Outfit (Moderna/Display)</option>
+                      <option value="Poppins">Poppins (Arredondada/Futurista)</option>
+                      <option value="Montserrat">Montserrat (Geométrica)</option>
+                      <option value="Playfair Display">Playfair Display (Serif/Editorial)</option>
+                      <option value="JetBrains Mono">JetBrains Mono (Monospace)</option>
+                    </select>
+                    <p className="text-[10px] text-gray-400 font-medium font-sans" style={{ fontFamily: globalBranding.fontFamily || 'Inter' }}>
+                      Visualização prévia do estilo da fonte selecionada.
+                    </p>
+                  </div>
+
+                  {/* Logotipo URL */}
+                  <div className="space-y-4 p-5 bg-gray-50 rounded-2xl border border-gray-100/50">
+                    <div className="flex items-center space-x-2">
+                      <Image className="w-4 h-4 text-blue-600" />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block font-sans">Logotipo Global Padrão (URL)</label>
+                    </div>
+                    <div className="flex gap-2 font-sans">
+                      <input 
+                        type="text" 
+                        value={globalBranding.logoUrl || ''}
+                        onChange={(e) => setGlobalBranding({ ...globalBranding, logoUrl: e.target.value })}
+                        placeholder="https://exemplo.com/logo.png"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold shadow-inner bg-white text-gray-700 outline-none"
+                      />
+                      {globalBranding.logoUrl && (
+                        <div className="w-10 h-10 border border-gray-200 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0">
+                          <img src={globalBranding.logoUrl} alt="Preview" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-medium font-sans">Link público para o arquivo de imagem do logo (PNG/SVG).</p>
+                  </div>
+                </div>
+
+                {/* Textos Padrão e Preview do Formulário */}
+                <div className="border-t border-gray-100 pt-6">
+                  <h5 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-4 flex items-center font-sans">
+                    <FileText className="w-4 h-4 mr-1.5 text-blue-600" />
+                    Textos e Copy Padrão do Formulário de Coleta de Leads
+                  </h5>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block font-sans">Título Principal Padrão</label>
+                        <input 
+                          type="text" 
+                          value={globalBranding.title || ''}
+                          onChange={(e) => setGlobalBranding({ ...globalBranding, title: e.target.value })}
+                          placeholder="Solicite uma Consultoria e Alavanque seus Resultados"
+                          className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-blue-600 outline-none font-sans"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block font-sans">Descrição Auxiliar Padrão</label>
+                        <textarea 
+                          value={globalBranding.description || ''}
+                          onChange={(e) => setGlobalBranding({ ...globalBranding, description: e.target.value })}
+                          placeholder="Fale com nosso time de especialistas e receba um plano estratégico personalizado para a sua empresa."
+                          className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-blue-600 outline-none min-h-[80px]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block font-sans">Texto do Botão Principal Padrão</label>
+                        <input 
+                          type="text" 
+                          value={globalBranding.buttonText || ''}
+                          onChange={(e) => setGlobalBranding({ ...globalBranding, buttonText: e.target.value })}
+                          placeholder="Enviar Solicitação de Consultoria"
+                          className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-blue-600 outline-none font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Mini live preview so the admin can see how beautiful it looks */}
+                    <div className="p-5 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-wider mb-3 inline-block font-sans">Visualização em Tempo Real</span>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-200/50 shadow-sm space-y-4" style={{ fontFamily: globalBranding.fontFamily || 'Inter' }}>
+                          <div className="flex items-center space-x-2">
+                            {globalBranding.logoUrl ? (
+                              <img src={globalBranding.logoUrl} alt="Logo" className="h-6 object-contain" referrerPolicy="no-referrer" />
+                            ) : (
+                              <div className="h-6 flex items-center text-xs font-extrabold text-gray-800">
+                                <Sparkles className="w-4 h-4 mr-1 text-yellow-500" /> SUA AGÊNCIA
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h6 className="text-sm font-black text-gray-900 leading-tight">
+                              {globalBranding.title || 'Solicite uma Consultoria Estratégica Completa'}
+                            </h6>
+                            <p className="text-[10px] text-gray-400 font-medium mt-1">
+                              {globalBranding.description || 'Preencha o formulário abaixo e receba um diagnóstico exclusivo.'}
+                            </p>
+                          </div>
+                          <div className="pt-2">
+                            <button 
+                              type="button"
+                              className="w-full py-2.5 rounded-xl text-[10px] font-bold text-white shadow-sm flex items-center justify-center gap-1.5 cursor-default font-sans"
+                              style={{ backgroundColor: globalBranding.primaryColor || '#2563eb' }}
+                            >
+                              <span>{globalBranding.buttonText || 'Solicitar Diagnóstico Gratuito'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-gray-400 text-center font-bold mt-4 font-sans">Tipografia: {globalBranding.fontFamily || 'Inter'} • Cor: {globalBranding.primaryColor || '#2563eb'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-6 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSavingGlobalBranding}
+                    className="px-6 py-3.5 bg-blue-600 text-white font-extrabold text-xs uppercase tracking-widest rounded-2xl hover:bg-blue-750 transition-all flex items-center space-x-2 shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer font-sans"
+                  >
+                    {isSavingGlobalBranding ? (
+                      <>
+                        <Clock className="w-4 h-4 animate-spin text-white" />
+                        <span>Salvando Branding...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                        <span>Salvar Branding Global Padrão</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

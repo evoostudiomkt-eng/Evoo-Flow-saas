@@ -54,6 +54,7 @@ export default function Settings({ profile }: { profile: UserProfile }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [buttonText, setButtonText] = useState('');
+  const [fontFamily, setFontFamily] = useState('Inter');
   const [isSavingBranding, setIsSavingBranding] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -74,6 +75,7 @@ export default function Settings({ profile }: { profile: UserProfile }) {
       setTitle(agency.branding?.title || '');
       setDescription(agency.branding?.description || '');
       setButtonText(agency.branding?.buttonText || '');
+      setFontFamily(agency.branding?.fontFamily || 'Inter');
     }
   }, [agency]);
 
@@ -176,7 +178,8 @@ export default function Settings({ profile }: { profile: UserProfile }) {
           primaryColor,
           title,
           description,
-          buttonText
+          buttonText,
+          fontFamily
         }
       });
       setSaveSuccess(true);
@@ -1050,6 +1053,26 @@ export default function Settings({ profile }: { profile: UserProfile }) {
                     </div>
                   </div>
 
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">Tipografia da Marca (Font Family)</label>
+                    <select 
+                      value={fontFamily}
+                      onChange={(e) => setFontFamily(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-semibold text-gray-700 text-sm font-sans"
+                    >
+                      <option value="Inter">Inter (Suiça/Clean)</option>
+                      <option value="Space Grotesk">Space Grotesk (Tech/Moderna)</option>
+                      <option value="Outfit">Outfit (Moderna/Display)</option>
+                      <option value="Poppins">Poppins (Arredondada/Futurista)</option>
+                      <option value="Montserrat">Montserrat (Geométrica)</option>
+                      <option value="Playfair Display">Playfair Display (Serif/Editorial)</option>
+                      <option value="JetBrains Mono">JetBrains Mono (Monospace)</option>
+                    </select>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide mt-1" style={{ fontFamily }}>
+                      Visualização prévia do estilo da fonte selecionada
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">Título da Reunião / Chamada</label>
@@ -1105,7 +1128,10 @@ export default function Settings({ profile }: { profile: UserProfile }) {
                 <div className="lg:col-span-5 space-y-4">
                   <div className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1 mb-2">Visualização em Tempo Real (Desktop)</div>
                   
-                  <div className="border border-gray-100 rounded-[2rem] overflow-hidden shadow-md bg-white h-[450px] flex flex-col justify-between relative group text-xs text-left">
+                  <div 
+                    className="border border-gray-100 rounded-[2rem] overflow-hidden shadow-md bg-white h-[450px] flex flex-col justify-between relative group text-xs text-left"
+                    style={{ fontFamily }}
+                  >
                     {/* Inner header of mock browser bar */}
                     <div className="bg-gray-100 px-4 py-2 border-b border-gray-100 flex items-center gap-2 text-gray-400 font-mono shrink-0">
                       <div className="flex gap-1.5">

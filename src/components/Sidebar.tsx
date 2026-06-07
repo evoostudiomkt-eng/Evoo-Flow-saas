@@ -16,7 +16,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { auth } from '../firebase';
-import { UserProfile } from '../types';
+import { UserProfile, Agency } from '../types';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import Logo from './ui/Logo';
@@ -28,9 +28,10 @@ interface SidebarProps {
   isClientMode: boolean;
   setIsClientMode: (mode: boolean) => void;
   isDemoMode?: boolean;
+  agency?: Agency | null;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode, setIsClientMode, isDemoMode = false }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode, setIsClientMode, isDemoMode = false, agency }: SidebarProps) {
   const isSuperAdmin = profile.email === 'evoostudiomkt@gmail.com' && !isDemoMode;
 
   const clientMenuItems = [
@@ -58,10 +59,27 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isClientMode
     ? menuItems 
     : menuItems.filter(item => profile.role === 'client' ? item.id === 'dashboard' : (profile.permissions?.includes(item.id) || item.id === 'dashboard'));
 
+  const showCustomLogo = agency?.branding?.logoUrl && !(isSuperAdmin && !isClientMode);
+
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col" id="sidebar">
+    <div className="w-64 bg-white border-r border-gray-200 flex flex-col animate-fade-in" id="sidebar">
       <div className="p-4 border-b border-gray-100 flex flex-col items-center space-y-4">
-        <Logo size="md" className="max-w-full" />
+        {showCustomLogo ? (
+          <div className="h-10 w-full flex items-center justify-center p-1.5 overflow-hidden rounded-xl bg-gray-50/50">
+            <img 
+              src={agency.branding?.logoUrl} 
+              alt={agency.name || "Agency Logo"} 
+              className="max-h-full max-w-full object-contain"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                // Return to generic fallback Logo if the custom logo url fails to load or resolves to garbage
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        ) : (
+          <Logo size="md" className="max-w-full" />
+        )}
         
         {isSuperAdmin && (
           <div className="w-full bg-gray-100 p-1 rounded-xl flex">

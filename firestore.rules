@@ -164,6 +164,11 @@ service cloud.firestore {
       allow create: if isSuperAdmin();
     }
 
+    match /saasSettings/{docId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
     // ------------------------------------------------------------------
     // 6. COLLECTION GROUPS (Para queries globais da agência)
     // ------------------------------------------------------------------
